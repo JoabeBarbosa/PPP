@@ -1,4 +1,5 @@
 # Principles-and-Practice-Using-C-Plus-Plus
+
 Exercícios do livro Programming Principles and Practice Using C++ - Bajrne Stroustrup
 
 Esse repositório se compõe das minhas resoluções dos exércicios do livro indicado acima durante meu processo de aprendizagem.

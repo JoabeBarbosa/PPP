@@ -7,28 +7,40 @@ using namespace std;
 
 int main()
 {
-    int answer;
-    string reply;
-    vector<int>numbers;
-    for(int i=1; i<=100; ++i)
-        numbers.push_back(i);
-    int n = numbers.size();
-    int lo = 0;
-    int hi = n-1;
-    cout << "Think a number between one and hundred!" << '\n';
-    while(lo<=hi)
-    {
-        int mi = lo + (hi-lo)/2;
-        cout << "Is the number you are thinking of less than or equal "
-             << numbers[mi] << "? yes or no?" << '\n';
-        cin >> reply;
-        if(reply=="no")
-            lo = mi+1;
-        else
-            hi = mi-1;
-    }
-    answer = lo+1;
-    cout << "The number you thought is "
-         << answer << "!" << '\n';
+   int number;
+   int square_position = 1;
+   int grains_add = 1;
+   int total_grains = 1;
+   cout << "Enter a number: ";
+   cin >> number;
+   while(total_grains<number)
+       if(square_position==1)
+       {
+          cout << "Square position (" << square_position
+            << ") Grains add (" << grains_add
+            << ") Total grains (" << total_grains << ")"
+            << '\n';
+            ++square_position;
+       }
+       else if(square_position==2)
+       {
+          grains_add = 2;
+          total_grains = 3;
+          cout << "Square position (" << square_position
+               << ") Grains add (" << grains_add
+               << ") Total grains (" << total_grains << ")"
+               << '\n';
+            ++square_position;
+       }
+       else
+       {
+          grains_add *= 2;
+          total_grains += grains_add;
+          cout << "Square position (" << square_position
+               << ") Grains add (" << grains_add
+               << ") Total grains (" << total_grains << ")"
+               << '\n';
+           ++square_position;
+       }
 
 }

@@ -1,10 +1,9 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
-#include <algorithm>
+
 
 using namespace std;
-
 
 int check(int x)
 {
@@ -15,6 +14,7 @@ int check(int x)
     else
     return x;
 }
+
 int main()
 {
 

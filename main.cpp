@@ -5,55 +5,26 @@
 
 using namespace std;
 
+
+int check(int x)
+{
+    if(x==2||x==3||x==5||x==7)
+    return x;
+    else if(x==1||x%2==0||x%3==0||x%5==0||x%7==0)
+    return 0;
+    else
+    return x;
+}
 int main()
 {
-    cout << "Enter values r(rocket), p(paper) or s(scissors).\n";
-    vector<char>machine;
-    for(char random; cin>>random;)
-    {
-        if(random=='r'||random=='p'||random=='s')
-        machine.push_back(random);
-        else
-        break;
 
-    }
-    for(int i=0; i<machine.size(); ++i)
-    {
-        cout << "Let's play. Choose r, p or s.\n";
-        char choice;
-        cin >> choice;
-        switch(machine[i]){
-        case 'r':
-        {
-        if(choice=='r')
-        cout << "Draw. RxR\n";
-        else if(choice=='p')
-        cout << "Win. RxP\n";
-        else
-        cout << "Lose. RxS\n";
-        }
-        break;
-        case 'p':
-        {
-        if(choice=='r')
-        cout << "Lose. PxR\n";
-        else if(choice=='p')
-        cout << "Draw. PxP\n";
-        else
-        cout << "Win. PxS\n";
-        }
-        break;
-        case 's':
-        {
-        if(choice=='r')
-        cout << "Win. SxR\n";
-        else if(choice=='p')
-        cout << "Lose. SxP\n";
-        else
-        cout << "Draw. SxS\n";
-        }
-        break;}
+    vector<int>primes;
+    for(int i=1; i<=100; ++i)
+    if(check(i)!=0)
+    primes.push_back(i);
 
-    }
+    for(int x:primes)
+    cout << x << " ";
+
 }
 

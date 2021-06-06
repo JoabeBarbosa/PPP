@@ -7,24 +7,39 @@ using namespace std;
 
 int check(int x)
 {
-    if(x==2||x==3||x==5||x==7)
-    return x;
-    else if(x==1||x%2==0||x%3==0||x%5==0||x%7==0)
-    return 0;
+    if(x==1)
+    {
+        return 0;
+    }
     else
-    return x;
-}
+    {
+       for(int i=2; i<x; ++i)
+          {
+             if(x%i==0)
+              {
+               return 0;
 
+              }
+             else
+               { } //Do nothing.
+          }
+    }
+
+    return x;
+
+}
 int main()
 {
-
+    cout << "Enter Max.\n";
+    int Max;
+    cin >> Max;
     vector<int>primes;
-    for(int i=1; i<=100; ++i)
+    for(int i=1; i<=Max; ++i)
     if(check(i)!=0)
     primes.push_back(i);
 
     for(int x:primes)
     cout << x << " ";
-
 }
+
 

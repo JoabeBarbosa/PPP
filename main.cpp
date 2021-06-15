@@ -7,44 +7,29 @@ using namespace std;
 
 int main()
 {
-    cout << "Enter names: \n";
-    vector<string>names;
-    for(string g:names)
-        cout << g << " ";
-    string para = "0";
-    for(string name; cin>>name;)
-    {
-        if(name!=para)
-        names.push_back(name);
-        else
-        break;
-    }
-    string Max, min, mode;
-    std::sort(names.begin(), names.end());
-    for(string h:names)
-        cout << h << " ";
-    min = names[0];
-    Max = names[names.size()-1];
-    int score_previous = 0;
-    int score_later = 0;
-    for(int p=0; p<names.size(); ++p)
-     {
-        string position = names[p];
-        for(int i=0; i<names.size(); ++i)
+    double a, b, c;
+    double x_1, x_2;
+    double delta;
+    cout << "Enter a quadratic equation (ax^2 + bx + c = 0). Inputs a, b, and c: ";
+    cin >> a >> b >> c;
+    cout << '\n' << a << "x^2 + " << b << "x" << " + " << c << " = 0" << '\n';
+    delta = b*b-4*a*c;
+    cout << "Delta = " << delta;
+    if(delta<0)
         {
-            if(names[i]==position)
-            ++score_later;
+           cout << "\nDelta < 0, have no real roots. Try again.";
+           return 0;
         }
-        if(score_later>score_previous)
+    else if(delta>0)
         {
-        mode = names[p];
-        score_previous=score_later;
-        score_later = 0;
+            x_1= (-b+sqrt(delta))/2*a;
+            x_2= (-b-sqrt(delta))/2*a;
+            cout << "\nx_1 = " << x_1
+                 << "\nx_2 = " << x_2;
         }
-        else
-        score_later = 0;
-     }
-    cout << "\nMax " << Max
-         << "\nmin " << min
-         << "\nmode " << mode;
+    else
+        {
+            x_1= (-b+sqrt(0))/2*a;
+            cout << "x_1 = x_2 = " << x_1;
+        }
 }

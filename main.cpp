@@ -33,18 +33,23 @@ int main()
    }
    for(int p=0; p<names.size(); ++p)
         cout << '\n' << names[p] << " " << scores[p] << '\n';
-    cout << "One more time, enter a name: \n";
-    string check;
-    while(cin>>check)
-     {
-         for(int j=0; j<names.size(); ++j)
+    cout << "One more time, enter a score: \n";
+    int check;
+    int control = 0;
+    cin>>check;
+    for(int j=0; j<scores.size(); ++j)
          {
-             if(check==names[j])
+             if(check==scores[j])
                 {
-                   cout << "\nCorresponding score: " << scores[j];
-                   return 0;
+                   cout << "\nCorresponding name: " << names[j] << '\n' ;
+                   ++control;
                 }
          }
-         cout << "\nName not found.";
-     }
+    if(control==0)
+         {
+            cout << "\nScore not found.";
+         }
+
+
+
 }

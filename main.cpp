@@ -33,4 +33,18 @@ int main()
    }
    for(int p=0; p<names.size(); ++p)
         cout << '\n' << names[p] << " " << scores[p] << '\n';
+    cout << "One more time, enter a name: \n";
+    string check;
+    while(cin>>check)
+     {
+         for(int j=0; j<names.size(); ++j)
+         {
+             if(check==names[j])
+                {
+                   cout << "\nCorresponding score: " << scores[j];
+                   return 0;
+                }
+         }
+         cout << "\nName not found.";
+     }
 }

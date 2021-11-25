@@ -9,154 +9,165 @@ class Token{
 public:
     char kind;
     double value;
+    Token(char sign)
+    :kind(sign), value(0){}
+    Token(char sign, double number)
+    :kind(sign), value(number){}
 };
 
-Token get_token() //WARN: Return only Token-types! Return the object (t1)! Do not return your members (t1.kind or t1.value).
+class Token_stream{
+public:
+    Token_stream();
+    Token get();
+    void putback(Token);
+private:
+    bool full;
+    Token buffer;
+};
+
+Token_stream::Token_stream()
+:full(false), buffer(0){};
+
+void Token_stream::putback(Token t)
 {
+    if(full)throw(t);
+    buffer = t;
+    full = true;
+}
+
+Token Token_stream::get()
+{
+    if(full)
+        {
+            full = false;
+            return buffer;
+        }
     char sign;
-    double number;
-    Token t1;
     cin >> sign;
     switch(sign){
-    case 'x': //"x" Terminates the loop.
-        {
-            t1.kind = sign;
-            return t1;
-        }
-    case '+': case '-': case '*': case '/': case '(': case ')':
-        {
-            t1.kind = sign;
-            return t1;
-        }
-    default: //Not a signal, so it's a number.
-        {
-            cin.putback(sign);
-            cin >> number;
-            t1.kind = '8';
-            t1.value = number;
-            return t1;
+    case 'x': // Quit
+    case '=': // Print
+    case '(': case ')': case '+': case '*': case '/': case '-': case '{': case '}':
+        return Token(sign);
+    case '.':
+    case '0': case '1': case '2': case '3': case '4':
+    case '5': case '6': case '7': case '8': case '9':
+    {
+        cin.putback(sign);
+        double val;
+        cin >> val;
+        return Token('8', val);
+    }
+default:
+    throw(sign);
+ }
+}
+
+Token_stream ts;
+
+double expression();
+
+double term();
+
+double primary();
+
+double expression()
+{
+    double left = term();
+    Token t = ts.get();
+    while(true){
+        switch(t.kind){
+        case '+':
+            left += term();
+            t = ts.get();
+            break;
+        case '-':
+            left -= term();
+            t = ts.get();
+            break;
+        default:
+            ts.putback(t);
+            return left;
         }
     }
-
 }
 
-vector<Token>tok;
-
-Token evaluate(int initial_position)////Function: Evaluates and erase elements of vector, until remain one.
+double term()
 {
-    Token perform {'8', 0};
-    Token answer {'8', 0};
-        for(int q=initial_position; q<tok.size(); ++q){
-            switch(tok[q].kind){
-            case '*':
-                perform.value = tok[q-1].value*tok[q+1].value;
-                tok.erase(tok.begin()+q-1, tok.begin()+q+1+1);
-                tok.insert(tok.begin()+q-1, perform);
-                --q;
-                break;
-            case '/':
-                perform.value = tok[q-1].value/tok[q+1].value;
-                tok.erase(tok.begin()+q-1, tok.begin()+q+1+1);
-                tok.insert(tok.begin()+q-1, perform);
-                --q;
+    double left = primary();
+    Token t = ts.get();
+    while(true){
+        switch(t.kind){
+        case '*':
+            left *= primary();
+            t = ts.get();
+            break;
+        case '/':
+            {
+                double d = primary();
+                if(d==0) throw(d); //throw a double, zero. Don't divide by zero.
+                left /= d;
+                t = ts.get();
                 break;
             }
+        default:
+            ts.putback(t);
+            return left;
         }
-        for(int q=initial_position; q<tok.size(); ++q){
-            switch(tok[q].kind){
-            case '+':
-                perform.value = tok[q-1].value+tok[q+1].value;
-                tok.erase(tok.begin()+q-1, tok.begin()+q+1+1);
-                tok.insert(tok.begin()+q-1, perform);
-                --q;
-                break;
-            case '-':
-                perform.value = tok[q-1].value-tok[q+1].value;
-                tok.erase(tok.begin()+q-1, tok.begin()+q+1+1);
-                tok.insert(tok.begin()+q-1, perform);
-                --q;
-                break;
-            }
-       }
-       answer.value = tok[0].value;
-       return answer;
+    }
 }
 
-Token evaluate_parentheses(int initial_position) //Function: evaluates values inside parentheses and erase them.
-{                                    //The argument initial_position: first parentheses of the pair more inner.
-    Token perform {'8', 0};          //Erase elements of vector, until remain one.
-    Token answer {'8', 0};
-        for(int q=initial_position; tok[q].kind!=')'; ++q){
-            switch(tok[q].kind){
-            case '*':
-                perform.value = tok[q-1].value*tok[q+1].value;
-                tok.erase(tok.begin()+q-1, tok.begin()+q+1+1);
-                tok.insert(tok.begin()+q-1, perform);
-                --q;
-                break;
-            case '/':
-                perform.value = tok[q-1].value/tok[q+1].value;
-                tok.erase(tok.begin()+q-1, tok.begin()+q+1+1);
-                tok.insert(tok.begin()+q-1, perform);
-                --q;
-                break;
-            }
+double primary()
+{
+    Token t = ts.get();
+    switch(t.kind){
+    case '{':
+        {
+            double c = expression();
+            t = ts.get();
+            if(t.kind!='}')throw(t);
+            return c;
         }
-        for(int q=initial_position; tok[q].kind!=')'; ++q){
-            switch(tok[q].kind){
-            case '+':
-                perform.value = tok[q-1].value+tok[q+1].value;
-                tok.erase(tok.begin()+q-1, tok.begin()+q+1+1);
-                tok.insert(tok.begin()+q-1, perform);
-                --q;
-                break;
-            case '-':
-                perform.value = tok[q-1].value-tok[q+1].value;
-                tok.erase(tok.begin()+q-1, tok.begin()+q+1+1);
-                tok.insert(tok.begin()+q-1, perform);
-                --q;
-                break;
-            }
-       }
-       if(tok[initial_position].kind=='(' && tok[initial_position+2].kind==')')
-       tok.erase(tok.begin()+initial_position+2); //Erase parentheses signal '(' and ')'.
-       tok.erase(tok.begin()+initial_position);
-    answer.value = tok[initial_position].value;
-    return answer;
+    case '(':
+        {
+            double d = expression();
+            t = ts.get();
+            if(t.kind!=')') throw(t); // Throw t!=')'. Is not a expression.
+            return d;
+        }
+    case '8':
+        return t.value;
+    default:
+        throw(t.kind); // Error: primary expected.
+    }
 }
 
 int main()
+try
 {
-   int previous_parentheses, latter_parentheses;
-   int control = 0;
-   Token result;
-   cout << "Enter a number or operators: ";
-   while(cin){
-        Token t = get_token();
-        if(t.kind=='x')//"x" Terminates the loop.
-            break;
-        tok.push_back(t);
+
+    cout << "Welcome to our simple calculator.\n"
+            "Please enter expression using floating-point numbers.\n"
+            "Operators available: +, -, *, (, ), {, } and /.\n"
+            "To print the evaluation on the screen enter =.\n"
+            "To quit enter the letter q.\n";
+    double val = 0;
+    while(cin){
+        Token t = ts.get();
+
+        if(t.kind=='x')break;
+        if(t.kind == '=')
+            cout << "=" << val << '\n';
+        else
+         ts.putback(t);
+
+        val = expression();
     }
-    cout << "Vector size: " << tok.size() << '\n';
-    cout << "Each vector:\n";
-    for(int i=0; i<tok.size(); ++i)
-        cout << tok[i].kind << " " << tok[i].value << '\n';
-    for(int t=0; t<tok.size(); ++t) {
-        for(int p=0; p<tok.size(); ++p){
-        if(tok[p].kind=='('){
-            previous_parentheses = p;
-           }
-        if(tok[p].kind==')'){
-            latter_parentheses = p;
-            ++control;
-           }
-        if(control==1){
-            result = evaluate_parentheses(previous_parentheses);
-            control = 0;
-            break;
-        }
-      }
-    }
-    result = evaluate(0);
-    cout << "Result: " << result.value;
+}
+
+catch(char myNum){
+    if(myNum=='q')
+        cout << "By by!" << endl;
+    else
+        cout << "Error. Bad Token: " << myNum <<  '\n';
 }

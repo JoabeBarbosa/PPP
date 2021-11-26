@@ -47,7 +47,7 @@ Token Token_stream::get()
     switch(sign){
     case 'x': // Quit
     case '=': // Print
-    case '(': case ')': case '+': case '*': case '/': case '-': case '{': case '}':
+    case '(': case ')': case '+': case '*': case '/': case '-': case '{': case '}': case '!':
         return Token(sign);
     case '.':
     case '0': case '1': case '2': case '3': case '4':
@@ -68,6 +68,8 @@ Token_stream ts;
 double expression();
 
 double term();
+
+int factorial();
 
 double primary();
 
@@ -94,17 +96,17 @@ double expression()
 
 double term()
 {
-    double left = primary();
+    double left = factorial();
     Token t = ts.get();
     while(true){
         switch(t.kind){
         case '*':
-            left *= primary();
+            left *= factorial();
             t = ts.get();
             break;
         case '/':
             {
-                double d = primary();
+                double d = factorial();
                 if(d==0) throw(d); //throw a double, zero. Don't divide by zero.
                 left /= d;
                 t = ts.get();
@@ -115,6 +117,27 @@ double term()
             return left;
         }
     }
+}
+
+int factorial()
+{
+    int left = primary();
+    Token t = ts.get();
+        switch(t.kind){
+    case '!':
+        {
+            if(left==0||left==1){
+                return 1;
+            }
+            for(int i=(left-1); i>0; --i){
+                left*=i;
+            }
+            return left;
+        }
+    default:
+        ts.putback(t);
+        return left;
+     }
 }
 
 double primary()
@@ -145,10 +168,9 @@ double primary()
 int main()
 try
 {
-
     cout << "Welcome to our simple calculator.\n"
             "Please enter expression using floating-point numbers.\n"
-            "Operators available: +, -, *, (, ), {, } and /.\n"
+            "Operators available: +, -, * and /.\n"
             "To print the evaluation on the screen enter =.\n"
             "To quit enter the letter q.\n";
     double val = 0;
@@ -165,9 +187,9 @@ try
     }
 }
 
-catch(char myNum){
-    if(myNum=='q')
-        cout << "By by!" << endl;
+catch(char myChar){
+    if(myChar=='x')
+        cout << "By By!" << endl;
     else
-        cout << "Error. Bad Token: " << myNum <<  '\n';
+        cout << "Error. Bad Token: " << myChar <<  '\n';
 }

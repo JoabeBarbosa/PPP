@@ -5,191 +5,54 @@
 
 using namespace std;
 
-class Token{
+class Name_value{
 public:
-    char kind;
-    double value;
-    Token(char sign)
-    :kind(sign), value(0){}
-    Token(char sign, double number)
-    :kind(sign), value(number){}
+    Name_value();
+    string name;
+    int value;
 };
 
-class Token_stream{
-public:
-    Token_stream();
-    Token get();
-    void putback(Token);
-private:
-    bool full;
-    Token buffer;
-};
-
-Token_stream::Token_stream()
-:full(false), buffer(0){};
-
-void Token_stream::putback(Token t)
+Name_value::Name_value()
 {
-    if(full)throw(t);
-    buffer = t;
-    full = true;
+    name = " "; //String initialization
+    value = 0;
 }
 
-Token Token_stream::get()
+void Validation();
+
+Name_value nm;
+
+void Set_name_value()
 {
-    if(full)
+    cin >> nm.name >> nm.value;
+    Validation();
+}
+
+vector<Name_value>Nava;
+
+void Validation()
+{
+    for(int i=0; i<Nava.size(); ++i){
+        if(nm.name==Nava[i].name)
         {
-            full = false;
-            return buffer;
+            cout << "Name entered twice. Try again!\n";
+            Set_name_value();
         }
-    char sign;
-    cin >> sign;
-    switch(sign){
-    case 'x': // Quit
-    case '=': // Print
-    case '(': case ')': case '+': case '*': case '/': case '-': case '{': case '}': case '!':
-        return Token(sign);
-    case '.':
-    case '0': case '1': case '2': case '3': case '4':
-    case '5': case '6': case '7': case '8': case '9':
-    {
-        cin.putback(sign);
-        double val;
-        cin >> val;
-        return Token('8', val);
-    }
-default:
-    throw(sign);
- }
-}
-
-Token_stream ts;
-
-double expression();
-
-double term();
-
-int factorial();
-
-double primary();
-
-double expression()
-{
-    double left = term();
-    Token t = ts.get();
-    while(true){
-        switch(t.kind){
-        case '+':
-            left += term();
-            t = ts.get();
-            break;
-        case '-':
-            left -= term();
-            t = ts.get();
-            break;
-        default:
-            ts.putback(t);
-            return left;
-        }
-    }
-}
-
-double term()
-{
-    double left = factorial();
-    Token t = ts.get();
-    while(true){
-        switch(t.kind){
-        case '*':
-            left *= factorial();
-            t = ts.get();
-            break;
-        case '/':
-            {
-                double d = factorial();
-                if(d==0) throw(d); //throw a double, zero. Don't divide by zero.
-                left /= d;
-                t = ts.get();
-                break;
-            }
-        default:
-            ts.putback(t);
-            return left;
-        }
-    }
-}
-
-int factorial()
-{
-    int left = primary();
-    Token t = ts.get();
-        switch(t.kind){
-    case '!':
-        {
-            if(left==0||left==1){
-                return 1;
-            }
-            for(int i=(left-1); i>0; --i){
-                left*=i;
-            }
-            return left;
-        }
-    default:
-        ts.putback(t);
-        return left;
-     }
-}
-
-double primary()
-{
-    Token t = ts.get();
-    switch(t.kind){
-    case '{':
-        {
-            double c = expression();
-            t = ts.get();
-            if(t.kind!='}')throw(t);
-            return c;
-        }
-    case '(':
-        {
-            double d = expression();
-            t = ts.get();
-            if(t.kind!=')') throw(t); // Throw t!=')'. Is not a expression.
-            return d;
-        }
-    case '8':
-        return t.value;
-    default:
-        throw(t.kind); // Error: primary expected.
     }
 }
 
 int main()
-try
 {
-    cout << "Welcome to our simple calculator.\n"
-            "Please enter expression using floating-point numbers.\n"
-            "Operators available: +, -, * and /.\n"
-            "To print the evaluation on the screen enter =.\n"
-            "To quit enter the letter q.\n";
-    double val = 0;
+    cout << "Enter a name and score:\n"
+            "The inputs 'NoName 0' stop the loop. \n";
     while(cin){
-        Token t = ts.get();
-
-        if(t.kind=='x')break;
-        if(t.kind == '=')
-            cout << "=" << val << '\n';
+        Set_name_value();
+        if(nm.name=="NoName" && nm.value==0)
+            break;
         else
-         ts.putback(t);
-
-        val = expression();
+            Nava.push_back(nm);
     }
-}
-
-catch(char myChar){
-    if(myChar=='x')
-        cout << "By By!" << endl;
-    else
-        cout << "Error. Bad Token: " << myChar <<  '\n';
+    for(int i=0; i<Nava.size(); ++i){
+        cout << Nava[i].name << '\t' << Nava[i].value << endl;
+    }
 }

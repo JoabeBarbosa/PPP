@@ -5,54 +5,74 @@
 
 using namespace std;
 
-class Name_value{
-public:
-    Name_value();
-    string name;
-    int value;
-};
+void conjunction();
+void verb();
+void noun();
 
-Name_value::Name_value()
+void sentence()
 {
-    name = " "; //String initialization
-    value = 0;
+    conjunction();
+    char word = ' ';
+    cin >> word;
+    if(word=='.')
+        cout << "It's ok!" << endl;
+    else
+    {
+        cin.putback(word);
+        sentence();
+    }
 }
 
-void Validation();
-
-Name_value nm;
-
-void Set_name_value()
+void conjunction()
 {
-    cin >> nm.name >> nm.value;
-    Validation();
-}
-
-vector<Name_value>Nava;
-
-void Validation()
-{
-    for(int i=0; i<Nava.size(); ++i){
-        if(nm.name==Nava[i].name)
-        {
-            cout << "Name entered twice. Try again!\n";
-            Set_name_value();
+    verb();
+    char space = ' ';
+    char dot = ' ';
+    cin.get(space);
+    dot = cin.peek();
+    if(dot!='.'){
+        string word = " ";
+        cin >> word;
+        if(word!="and" && word!="or" && word!="but"){ //Pattern consistency
+            cout << "Not ok!" << endl;
+            throw(word);
         }
     }
 }
 
-int main()
+void verb()
 {
-    cout << "Enter a name and score:\n"
-            "The inputs 'NoName 0' stop the loop. \n";
+    noun();
+    string word = " ";
+    cin >> word;
+    if(word!="rules" && word!="fly" && word!="swim"){
+        cout << "Not ok!" << endl;
+        throw(word);
+    }
+}
+
+void noun()
+{
+    string word = " ";
+    cin >> word;
+    if(word!="birds" && word!="fish" && word!="c++"){
+        cout << "Not ok!" << endl;
+        throw(word);
+    }
+
+}
+
+int main()
+try
+{
+    cout << "Please, enter a simple English sentence: \n"
+            "Enter any number to quit.\n";
     while(cin){
-        Set_name_value();
-        if(nm.name=="NoName" && nm.value==0)
-            break;
-        else
-            Nava.push_back(nm);
+        sentence();
     }
-    for(int i=0; i<Nava.size(); ++i){
-        cout << Nava[i].name << '\t' << Nava[i].value << endl;
-    }
+}
+
+catch(string myString)
+{
+    cout << "Bad input: " << myString << endl;
 }

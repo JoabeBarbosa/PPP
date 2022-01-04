@@ -8,30 +8,30 @@ using namespace std;
 class Token{
 public:
     Token(char);
-    Token(char, int);
+    Token(char, char);
     void set_kind(char);
-    void set_value(int);
+    void set_value(char);
     char get_kind();
-    double get_value();
+    char get_value();
 private:
     char kind;
-    int value;
+    char value;
 };
 
-Token::Token(char sign)
-:kind(sign), value(0){}
+Token::Token(char c)
+:kind(c), value(0){}
 
-Token::Token(char sign, int number)
-:kind(sign), value(number){}
+Token::Token(char c, char i)
+:kind(c), value(i){}
 
-void Token::set_kind(char sign)
+void Token::set_kind(char c)
 {
-    kind = sign;
+    kind = c;
 }
 
-void Token::set_value(int number)
+void Token::set_value(char i)
 {
-    value = number;
+    value = i;
 }
 
 char Token::get_kind()
@@ -39,171 +39,71 @@ char Token::get_kind()
     return kind;
 }
 
-double Token::get_value()
+char Token::get_value()
 {
     return value;
 }
 
-class Token_stream{
-public:
-    Token_stream();
-    Token get();
-    void putback(Token);
-private:
-    bool full;
-    Token buffer;
-};
-
-Token_stream::Token_stream()
-:full(false), buffer(0){}
-
-Token Token_stream::get()
+Token get_token()
 {
-    if(full){
-        full = false;
-        return buffer;
-    }
-
-    char kind = ' ';
-    cin >> kind;
-    switch(kind){
-    case '|': case '^': case '&': case '!': case '~': case '(': case ')': case 'q': case ';':
-        return Token(kind);
+    char digit = ' ';
+    cin >> digit;
+    switch(digit){
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-        {
-            cin.putback(kind);
-            int value;
-            cin >> value;
-            return Token('8', value);
-        }
+        return Token{'8', digit};
+    case ';':
+        return Token{';'};
     default:
-        throw(kind);
+        throw(digit);
     }
 }
 
-void Token_stream::putback(Token t)
+vector<int>digits;
+
+void read()
 {
-    if(full)throw(t);
-    buffer = t;
-    full = true;
-}
-
-int term();
-int primary();
-int unary();
-
-Token_stream ts;
-
-int expression()
-{
-    int left = term();
-    Token t = ts.get();
-    while(true){
-        switch(t.get_kind()){
-            case '|':
-                left = left|term();
-                t = ts.get();
-                break;
-            default:
-                ts.putback(t);
-                return left;
-      }
-    }
-
-}
-
-int term()
-{
-    int left = primary();
-    Token t = ts.get();
-    while(true){
-        switch(t.get_kind()){
-        case '^':
-            left = left^primary();
-            t = ts.get();
-            break;
-        default:
-            ts.putback(t);
-            return left;
-        }
+    int i = 0;
+    while(cin){
+       Token digit = get_token();
+       if(digit.get_kind()==';')break;
+       i = digit.get_value()-'0';
+       digits.push_back(i);
     }
 }
 
-int primary()
+vector<string>decimals;
+
+void init()
 {
-    int left = unary();
-    Token t = ts.get();
-    while(true){
-        switch(t.get_kind()){
-        case '&':
-                left = left&unary();
-                t = ts.get();
-                break;
-        default:
-            ts.putback(t);
-            return left;
-        }
-    }
+    decimals.push_back("thousand");
+    decimals.push_back("hundred");
+    decimals.push_back("tens");
+    decimals.push_back("ones");
 }
 
-int unary()
+void compose()
 {
-    Token t = ts.get();
-    while(true){
-        switch(t.get_kind()){
-            case '(':
-                   {
-                       int left = expression();
-                       t = ts.get();
-                       if(t.get_kind()!=')')
-                            throw(t.get_kind());
-                       return left;
-                   }
-
-            case '~':
-                {
-                    t = ts.get();
-                    if(t.get_kind()!='8')
-                        throw(t.get_kind());
-                    int left = t.get_value();
-                    left = ~left;
-                    return left;
-                }
-            case '!':
-                {
-                    t = ts.get();
-                    if(t.get_kind()!='8')
-                        throw(t.get_kind());
-                    int left = !t.get_value();
-                    return left;
-                }
-            case '8':
-                return t.get_value();
-        }
+    for(int i=0, j=4-digits.size(); i<digits.size(); ++i, ++j){
+        cout << digits[i] << " " << decimals[j] << " ";
     }
+    cout << endl;
 }
 
 int main()
 try
 {
-    cout << "Enter a bitwise operation: "
-            "\nEnter 'q' to quit."
-         << endl;
-    int result;
+    cout << "Enter numbers: " << endl;
+    init();
     while(cin){
-        Token t = ts.get();
-        if(t.get_kind()=='q') break;
-        if(t.get_kind()==';')
-            cout << "=" << result << endl;
-        else
-        {
-            ts.putback(t);
-            result = expression();
-        }
+        read();
+        compose();
+        digits.erase(digits.begin(), digits.end());
     }
+
 }
 
-catch(char t){
-    cout << "Error! " << t << endl;
+catch(char myChar)
+{
+    cout << "Error! " << myChar << endl;
 }

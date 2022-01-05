@@ -8,28 +8,28 @@ using namespace std;
 class Token{
 public:
     Token(char);
-    Token(char, char);
+    Token(char, int);
     void set_kind(char);
-    void set_value(char);
+    void set_value(int);
     char get_kind();
-    char get_value();
+    int get_value();
 private:
     char kind;
-    char value;
+    int value;
 };
 
-Token::Token(char c)
-:kind(c), value(0){}
+Token::Token(char ch)
+:kind(ch), value(0){}
 
-Token::Token(char c, char i)
-:kind(c), value(i){}
+Token::Token(char ch, int i)
+:kind(ch), value(i){}
 
-void Token::set_kind(char c)
+void Token::set_kind(char ch)
 {
-    kind = c;
+    kind = ch;
 }
 
-void Token::set_value(char i)
+void Token::set_value(int i)
 {
     value = i;
 }
@@ -39,71 +39,82 @@ char Token::get_kind()
     return kind;
 }
 
-char Token::get_value()
+int Token::get_value()
 {
     return value;
 }
 
 Token get_token()
 {
-    char digit = ' ';
-    cin >> digit;
-    switch(digit){
+    char ch = ' ';
+    cin >> ch;
+    switch(ch){
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-        return Token{'8', digit};
-    case ';':
-        return Token{';'};
+        {
+            cin.putback(ch);
+            int i = 0;
+            cin >> i;
+            return Token{'8', i};
+        }
+    case 'c': case 'p': case 'q':
+        return Token{ch};
     default:
-        throw(digit);
+        throw(ch);
     }
 }
 
-vector<int>digits;
-
-void read()
+int factorial(int f)
 {
-    int i = 0;
-    while(cin){
-       Token digit = get_token();
-       if(digit.get_kind()==';')break;
-       i = digit.get_value()-'0';
-       digits.push_back(i);
-    }
+    if(f==0||f==1)return 1;
+    for(int i=f-1; i>0; --i)
+        f*=i;
+    return f;
 }
 
-vector<string>decimals;
-
-void init()
+int permutation(int n, int k)
 {
-    decimals.push_back("thousand");
-    decimals.push_back("hundred");
-    decimals.push_back("tens");
-    decimals.push_back("ones");
+    int p = factorial(n)/factorial(n-k);
+    return p;
 }
 
-void compose()
+int combination(int n, int k)
 {
-    for(int i=0, j=4-digits.size(); i<digits.size(); ++i, ++j){
-        cout << digits[i] << " " << decimals[j] << " ";
-    }
-    cout << endl;
+    int c = permutation(n, k)/factorial(k);
+    return c;
 }
 
 int main()
 try
 {
-    cout << "Enter numbers: " << endl;
-    init();
+    cout << "Enter two positive integers 'n' and 'k' and choose 'p'(permutation) or 'c'(combination)."
+            "\nEnter 'q' to quit.\n"
+         << endl;
     while(cin){
-        read();
-        compose();
-        digits.erase(digits.begin(), digits.end());
+        cout << "Enter 'n': ";
+        Token n = get_token();
+        if(n.get_kind()=='q')break;
+        cout << "\nEnter 'k': ";
+        Token k = get_token();
+        if(k.get_kind()=='q')break;
+        cout << "\nChoose 'p'(permutation) or 'c'(combination): ";
+        Token choose = get_token();
+        if(choose.get_kind()=='q')break;
+        switch(choose.get_kind()){
+        case 'p':
+            cout << "\n=" << permutation(n.get_value(), k.get_value()) << endl;
+            break;
+        case 'c':
+            cout << "\n=" << combination(n.get_value(), k.get_value()) << endl;
+            break;
+        default:
+            throw(choose.get_kind());
+        }
+        cout << endl;
     }
-
 }
 
 catch(char myChar)
 {
-    cout << "Error! " << myChar << endl;
+    cout << "\nException! " << "Bad input: " << myChar << endl;
 }

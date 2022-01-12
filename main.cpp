@@ -5,116 +5,361 @@
 
 using namespace std;
 
+const char number = '8';
+const char print = ';';
+const char quit = 'q';
+const string prompt = "> ";
+const string result = "= "; //Used to indicate that what follows is a result
+const char name = 'a';
+const char let = 'L';
+const string declkey = "let";
+
 class Token{
 public:
-    Token(char);
-    Token(char, int);
-    void set_kind(char);
-    void set_value(int);
-    char get_kind();
-    int get_value();
-private:
     char kind;
-    int value;
+    double value;
+    string name;
+    Token(char sign)
+    :kind(sign), value(0){}
+    Token(char sign, double number)
+    :kind(sign), value(number){}
+    Token(char sign, string n):
+    kind(sign), name(n){}
 };
 
-Token::Token(char ch)
-:kind(ch), value(0){}
+class Token_stream{
+public:
+    Token_stream();
+    Token get();
+    void putback(Token);
+    bool get_full();
+    void ignore(char);
+private:
+    bool full;
+    Token buffer;
+};
 
-Token::Token(char ch, int i)
-:kind(ch), value(i){}
+class Variable{
+public:
+    string name;
+    double value;
+};
 
-void Token::set_kind(char ch)
+Token_stream::Token_stream()
+:full(false), buffer(0){};
+
+void Token_stream::putback(Token t)
 {
-    kind = ch;
+    if(full)throw(t);
+    buffer = t;
+    full = true;
 }
 
-void Token::set_value(int i)
+bool Token_stream::get_full()
 {
-    value = i;
+    return full;
 }
 
-char Token::get_kind()
+void Token_stream::ignore(char c)
 {
-    return kind;
+    if(full && buffer.kind==c){
+        full = false;
+        return;
+    }
+    full = false;
+    char ch = 0;
+    while(cin>>ch)
+        if(ch==c)
+        return;
+
 }
 
-int Token::get_value()
-{
-    return value;
-}
+vector<Variable>var_table;
 
-Token get_token()
+Token Token_stream::get()
 {
-    char ch = ' ';
-    cin >> ch;
-    switch(ch){
+    if(full)
+        {
+            full = false;
+            return buffer;
+        }
+    char sign;
+    cin >> sign;
+    switch(sign){
+    case ';': // print
+    case '=': // result
+    case 'q': // quit
+    case '(':
+    case ')':
+    case '+':
+    case '*':
+    case '/':
+    case '-':
+    case '{':
+    case '}':
+    case '!':
+    case '%':
+        return Token{sign};
+    case '.':
     case '0': case '1': case '2': case '3': case '4':
     case '5': case '6': case '7': case '8': case '9':
-        {
-            cin.putback(ch);
-            int i = 0;
-            cin >> i;
-            return Token{'8', i};
+    {
+        cin.putback(sign);
+        double val;
+        cin >> val;
+        return Token{number, val};
+    }
+default:
+    if(isalpha(sign)){
+        string s;
+        s += sign;
+        while(cin.get(sign)&&(isalpha(sign)||isdigit(sign)))s+=sign;
+        cin.putback(sign);
+        if(s==declkey)return Token{let};
+        for(const Variable& v:var_table)if(v.name==s)return Token(number, v.value);
+        return Token{name, s};
+    }
+    throw(sign);
+ }
+}
+
+Token_stream ts;
+
+double declaration();
+
+double expression();
+
+double term();
+
+double factorial();
+
+double primary();
+
+double get_value(string s)
+{
+    for(const Variable& v:var_table)
+        if(v.name==s)return v.value;
+    throw(s);
+}
+
+void set_value(string s, double d)
+{
+    for(Variable& v:var_table)
+        if(v.name==s){
+            v.value = d;
+            return;
         }
-    case 'c': case 'p': case 'q':
-        return Token{ch};
+    throw(s);
+}
+
+double statement()
+{
+    Token t = ts.get();
+    switch(t.kind){
+    case let:
+        return declaration();
     default:
-        throw(ch);
+        ts.putback(t);
+        return expression();
     }
 }
 
-int factorial(int f)
+bool is_declared(string var)
 {
-    if(f==0||f==1)return 1;
-    for(int i=f-1; i>0; --i)
-        f*=i;
-    return f;
+    for(const Variable& v:var_table)
+        if(v.name==var)return true;
+    return false;
 }
 
-int permutation(int n, int k)
+double define_name(string var, double val)
 {
-    int p = factorial(n)/factorial(n-k);
-    return p;
+    if(is_declared(var))throw(var);
+    var_table.push_back(Variable{var, val});
+    return val;
 }
 
-int combination(int n, int k)
+double declaration()
 {
-    int c = permutation(n, k)/factorial(k);
-    return c;
+    Token t = ts.get();
+    if(t.kind!=name)throw(t.kind);
+    string var_name = t.name;
+
+    Token t2 = ts.get();
+    if(t2.kind!='=')throw(t2.kind);
+
+    double d = expression();
+    define_name(var_name,d);
+    return d;
+}
+
+double expression()
+{
+    double left = term();
+    Token t = ts.get();
+    while(true){
+        switch(t.kind){
+        case '+':
+            left += term();
+            t = ts.get();
+            break;
+        case '-':
+            left -= term();
+            t = ts.get();
+            break;
+        default:
+            ts.putback(t);
+            return left;
+        }
+    }
+}
+
+double term()
+{
+    double left = factorial();
+    Token t = ts.get();
+    while(true){
+        switch(t.kind){
+        case '%':
+            {
+                double d = factorial();
+                if(d == 0) throw(d);
+                left = fmod(left,d);
+                t = ts.get();
+                break;
+            }
+        case '*':
+            left *= factorial();
+            t = ts.get();
+            break;
+        case '/':
+            {
+                double d = factorial();
+                if(d==0) throw(d); //throw a double, zero. Don't divide by zero.
+                left /= d;
+                t = ts.get();
+                break;
+            }
+        default:
+            ts.putback(t);
+            return left;
+        }
+    }
+}
+
+double factorial()
+{
+    double left = primary();
+    Token t = ts.get();
+    while(true){
+        switch(t.kind){
+    case '!':
+        {
+            int i = static_cast<int>(left);
+            if(i==0||i==1){
+                i = 1;
+            left = i;
+            t = ts.get();
+            break;
+            }
+            for(int j=(i-1); j>0; --j)
+                i*=j;
+            left = i;
+            t = ts.get();
+            break;
+        }
+
+    default:
+        ts.putback(t);
+        return left;
+     }
+    }
+}
+
+double primary()
+{
+    Token t = ts.get();
+    switch(t.kind){
+    case '+':
+        return +primary();
+    case '-':
+        return -primary();
+    case '{':
+        {
+            double c = expression();
+            t = ts.get();
+            if(t.kind!='}')throw(t);
+            return c;
+        }
+    case '(':
+        {
+            double d = expression();
+            t = ts.get();
+            if(t.kind!=')') throw(t); // Throw t!=')'. Is not a expression.
+            return d;
+        }
+    case number:
+        return t.value;
+    default:
+        throw(t.kind); // Error: primary expected.
+    }
+}
+
+void clean_up_mess();
+
+void calculate()
+{
+    double val = 0;
+    while(cin)
+    try{
+        if(!ts.get_full())
+            cout << prompt;
+        Token t = ts.get();
+        if(t.kind==quit)return;
+        if(t.kind==print)
+            cout << result << val << '\n';
+        else
+            ts.putback(t);
+        if(!ts.get_full())
+            cout << prompt;
+        val = statement();
+    }
+    catch(char myChar)
+    {
+        cout << "Exception! Bad input: " << myChar << endl;
+        cout << "Try again!\n" << endl;
+        clean_up_mess();
+
+    }
+}
+
+void clean_up_mess()
+{
+    ts.ignore(print);
 }
 
 int main()
 try
 {
-    cout << "Enter two positive integers 'n' and 'k' and choose 'p'(permutation) or 'c'(combination)."
-            "\nEnter 'q' to quit.\n"
-         << endl;
-    while(cin){
-        cout << "Enter 'n': ";
-        Token n = get_token();
-        if(n.get_kind()=='q')break;
-        cout << "\nEnter 'k': ";
-        Token k = get_token();
-        if(k.get_kind()=='q')break;
-        cout << "\nChoose 'p'(permutation) or 'c'(combination): ";
-        Token choose = get_token();
-        if(choose.get_kind()=='q')break;
-        switch(choose.get_kind()){
-        case 'p':
-            cout << "\n=" << permutation(n.get_value(), k.get_value()) << endl;
-            break;
-        case 'c':
-            cout << "\n=" << combination(n.get_value(), k.get_value()) << endl;
-            break;
-        default:
-            throw(choose.get_kind());
-        }
-        cout << endl;
-    }
+    cout << "Welcome to our simple calculator.\n"
+            "Please enter expression using floating-point numbers.\n"
+            "Operators available: +, -, !, * and /.\n"
+            "To print the evaluation on the screen enter ;.\n"
+            "To quit enter the letter q.\n";
+
+    define_name("pi", 3.1415926535);
+    define_name("e", 2.7182818284);
+
+    calculate();
 }
 
-catch(char myChar)
+catch(char myChar){
+    if(myChar==quit)
+        cout << "By By!" << endl;
+    else
+        cout << "Error. Bad Token: " << myChar <<  '\n';
+}
+
+catch(...)
 {
-    cout << "\nException! " << "Bad input: " << myChar << endl;
+    cout << "Error! Exception!" << endl;
 }

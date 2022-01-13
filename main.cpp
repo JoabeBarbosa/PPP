@@ -279,6 +279,9 @@ double primary()
 {
     Token t = ts.get();
     switch(t.kind){
+    case 'q':
+        ts.putback(t);
+        return 0;
     case '+':
         return +primary();
     case '-':

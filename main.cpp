@@ -5,6 +5,8 @@
 
 using namespace std;
 
+//Symbolic constants
+
 const char number = '8';
 const char print = ';';
 const char quit = 'q';
@@ -13,6 +15,11 @@ const string result = "= "; //Used to indicate that what follows is a result
 const char name = 'a';
 const char let = 'L';
 const string declkey = "let";
+const char sroot = '~';
+const char power = '^';
+const char change = 'C';
+const char constant = 'T';
+const string constkey = "const";
 
 class Token{
 public:
@@ -43,6 +50,11 @@ class Variable{
 public:
     string name;
     double value;
+    bool is_constant;
+    Variable(string s, double d)
+    :name(s), value(d), is_constant(false){}
+    Variable(string s, double d, bool b)
+    :name(s), value(d), is_constant(b){}
 };
 
 Token_stream::Token_stream()
@@ -75,6 +87,10 @@ void Token_stream::ignore(char c)
 }
 
 vector<Variable>var_table;
+double expression();
+void set_value(string, double);
+bool is_declared(string);
+Variable va {" ", 0, false};
 
 Token Token_stream::get()
 {
@@ -86,6 +102,8 @@ Token Token_stream::get()
     char sign;
     cin >> sign;
     switch(sign){
+    case '^': // power
+    case '~': // sroot
     case ';': // print
     case '=': // result
     case 'q': // quit
@@ -113,10 +131,15 @@ default:
     if(isalpha(sign)){
         string s;
         s += sign;
-        while(cin.get(sign)&&(isalpha(sign)||isdigit(sign)))s+=sign;
+        while(cin.get(sign)&&(isalpha(sign)||isdigit(sign)||sign=='_'))s+=sign;
         cin.putback(sign);
-        if(s==declkey)return Token{let};
+        if(s==declkey){va.is_constant = false; return Token{let};}
+        if(s==constkey){va.is_constant = true; return Token{constant};}
+        cin >> sign;
+        if(sign=='='&&is_declared(s))return Token{change, s};
+        cin.putback(sign);
         for(const Variable& v:var_table)if(v.name==s)return Token(number, v.value);
+        if(va.is_constant)return Token{constant, s};
         return Token{name, s};
     }
     throw(sign);
@@ -127,9 +150,13 @@ Token_stream ts;
 
 double declaration();
 
+double redeclaration();
+
 double expression();
 
 double term();
+
+double powr();
 
 double factorial();
 
@@ -145,19 +172,65 @@ double get_value(string s)
 void set_value(string s, double d)
 {
     for(Variable& v:var_table)
-        if(v.name==s){
+        if(v.name==s&&!v.is_constant){
             v.value = d;
             return;
         }
     throw(s);
 }
 
+double statement();
+void clean_up_mess();
+
+void calculate()
+{
+    double val = 0;
+    while(cin)
+    try{
+        if(!ts.get_full())
+            cout << prompt;
+        Token t = ts.get();
+        if(t.kind==quit)return;
+        if(t.kind==print)
+            cout << result << val << '\n';
+        else
+            ts.putback(t);
+        if(!ts.get_full())
+            cout << prompt;
+        val = statement();
+    }
+    catch(char myChar)
+    {
+        cout << "Exception! Bad input: " << myChar << endl;
+        cout << "Try again!\n" << endl;
+        clean_up_mess();
+
+    }
+    catch(string myString){
+        cout << "Error! String in Calculation() " << myString << endl;
+    }
+    catch(double myDouble){
+        cout << "Error! Double in Calculation() " << myDouble << endl;
+    }
+    catch(Token myToken){
+        cout << "Error! Token calculation()! t.kind = " << myToken.kind << endl;
+    }
+}
+
+void clean_up_mess()
+{
+    ts.ignore(print);
+}
+
 double statement()
 {
     Token t = ts.get();
     switch(t.kind){
-    case let:
-        return declaration();
+    case let: case constant:
+        return declaration(); //Declaration return new variable's value, which simplifies the code.
+    case change:
+        ts.putback(t);
+        return redeclaration();
     default:
         ts.putback(t);
         return expression();
@@ -171,24 +244,32 @@ bool is_declared(string var)
     return false;
 }
 
-double define_name(string var, double val)
+double define_name(string var, double val, bool b)
 {
     if(is_declared(var))throw(var);
-    var_table.push_back(Variable{var, val});
+    var_table.push_back(Variable{var, val, b});
     return val;
 }
 
 double declaration()
 {
     Token t = ts.get();
-    if(t.kind!=name)throw(t.kind);
+    if(t.kind!=name&&t.kind!=constant)throw(t.kind);
     string var_name = t.name;
 
     Token t2 = ts.get();
     if(t2.kind!='=')throw(t2.kind);
 
     double d = expression();
-    define_name(var_name,d);
+    define_name(var_name, d, va.is_constant);
+    return d;
+}
+
+double redeclaration()
+{
+    Token t = ts.get();
+    double d = expression();
+    set_value(t.name, d);
     return d;
 }
 
@@ -215,7 +296,7 @@ double expression()
 
 double term()
 {
-    double left = factorial();
+    double left = powr();
     Token t = ts.get();
     while(true){
         switch(t.kind){
@@ -242,6 +323,28 @@ double term()
         default:
             ts.putback(t);
             return left;
+        }
+    }
+}
+
+double powr()
+{
+    double left = factorial();
+    Token t = ts.get();
+    while(true){
+        switch(t.kind){
+        case power:
+            {
+                int i = static_cast<int>(factorial());
+                left = pow(left, i);
+                t = ts.get();
+                break;
+            }
+
+        default:
+            ts.putback(t);
+            return left;
+
         }
     }
 }
@@ -279,7 +382,13 @@ double primary()
 {
     Token t = ts.get();
     switch(t.kind){
-    case 'q':
+    case sroot: //square root
+        {
+            double d = primary();
+            if(d<0)throw(d);
+            return sqrt(d);
+        }
+    case quit:
         ts.putback(t);
         return 0;
     case '+':
@@ -307,39 +416,6 @@ double primary()
     }
 }
 
-void clean_up_mess();
-
-void calculate()
-{
-    double val = 0;
-    while(cin)
-    try{
-        if(!ts.get_full())
-            cout << prompt;
-        Token t = ts.get();
-        if(t.kind==quit)return;
-        if(t.kind==print)
-            cout << result << val << '\n';
-        else
-            ts.putback(t);
-        if(!ts.get_full())
-            cout << prompt;
-        val = statement();
-    }
-    catch(char myChar)
-    {
-        cout << "Exception! Bad input: " << myChar << endl;
-        cout << "Try again!\n" << endl;
-        clean_up_mess();
-
-    }
-}
-
-void clean_up_mess()
-{
-    ts.ignore(print);
-}
-
 int main()
 try
 {
@@ -349,8 +425,9 @@ try
             "To print the evaluation on the screen enter ;.\n"
             "To quit enter the letter q.\n";
 
-    define_name("pi", 3.1415926535);
-    define_name("e", 2.7182818284);
+    define_name("pi", 3.1415926535, true);
+    define_name("e", 2.7182818284, true);
+    define_name("k", 1000, true);
 
     calculate();
 }
@@ -360,6 +437,10 @@ catch(char myChar){
         cout << "By By!" << endl;
     else
         cout << "Error. Bad Token: " << myChar <<  '\n';
+
+}
+catch(string myString){
+    cout << "Error! String exception! " << myString << endl;
 }
 
 catch(...)

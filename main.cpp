@@ -20,6 +20,9 @@ const char power = '^';
 const char change = 'C';
 const char constant = 'T';
 const string constkey = "const";
+const string helpkey = "H";
+const string helpkey2 = "h";
+const char help = 'h';
 
 class Token{
 public:
@@ -146,6 +149,7 @@ default:
         else cin.putback(sign);
         if(s==declkey){va.is_constant = false; return Token{let};}
         if(s==constkey){va.is_constant = true; return Token{constant};}
+        if(s==helpkey||s==helpkey2)return Token{help};
         cin >> sign;
         if(sign=='='&&st.is_declared(s))return Token{change, s};
         cin.putback(sign);
@@ -186,6 +190,15 @@ void Symbol_table::set_value(string s, double d)
             return;
         }
     throw(s);
+}
+
+double instruction()
+{
+    Token t = ts.get();
+    if(t.kind!=help)throw(t.kind);
+    cout << "Define variables and constants entering 'let' and 'const'\n"
+            "before the name of them.\n";
+    return 0;
 }
 
 double statement();
@@ -237,6 +250,9 @@ double statement()
     switch(t.kind){
     case let: case constant:
         return st.declare(); //Declaration return new variable's value, which simplifies the code.
+    case help:
+        ts.putback(t);
+        return instruction();
     case change:
         ts.putback(t);
         return redeclaration();

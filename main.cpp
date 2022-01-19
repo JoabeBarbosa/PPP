@@ -57,6 +57,15 @@ public:
     :name(s), value(d), is_constant(b){}
 };
 
+class Symbol_table{
+public:
+    void set_value(string, double);
+    double get_value(string);
+    double declare();
+    bool is_declared(string);
+    vector<Variable>var_table;
+};
+
 Token_stream::Token_stream()
 :full(false), buffer(0){};
 
@@ -86,10 +95,8 @@ void Token_stream::ignore(char c)
 
 }
 
-vector<Variable>var_table;
+Symbol_table st;
 double expression();
-void set_value(string, double);
-bool is_declared(string);
 Variable va {" ", 0, false};
 
 Token Token_stream::get()
@@ -136,9 +143,9 @@ default:
         if(s==declkey){va.is_constant = false; return Token{let};}
         if(s==constkey){va.is_constant = true; return Token{constant};}
         cin >> sign;
-        if(sign=='='&&is_declared(s))return Token{change, s};
+        if(sign=='='&&st.is_declared(s))return Token{change, s};
         cin.putback(sign);
-        for(const Variable& v:var_table)if(v.name==s)return Token(number, v.value);
+        for(const Variable& v:st.var_table)if(v.name==s)return Token(number, v.value);
         if(va.is_constant)return Token{constant, s};
         return Token{name, s};
     }
@@ -147,8 +154,6 @@ default:
 }
 
 Token_stream ts;
-
-double declaration();
 
 double redeclaration();
 
@@ -162,16 +167,16 @@ double factorial();
 
 double primary();
 
-double get_value(string s)
+double Symbol_table::get_value(string s)
 {
-    for(const Variable& v:var_table)
+    for(const Variable& v:st.var_table)
         if(v.name==s)return v.value;
     throw(s);
 }
 
-void set_value(string s, double d)
+void Symbol_table::set_value(string s, double d)
 {
-    for(Variable& v:var_table)
+    for(Variable& v:st.var_table)
         if(v.name==s&&!v.is_constant){
             v.value = d;
             return;
@@ -227,7 +232,7 @@ double statement()
     Token t = ts.get();
     switch(t.kind){
     case let: case constant:
-        return declaration(); //Declaration return new variable's value, which simplifies the code.
+        return st.declare(); //Declaration return new variable's value, which simplifies the code.
     case change:
         ts.putback(t);
         return redeclaration();
@@ -237,7 +242,7 @@ double statement()
     }
 }
 
-bool is_declared(string var)
+bool Symbol_table::is_declared(string var)
 {
     for(const Variable& v:var_table)
         if(v.name==var)return true;
@@ -246,12 +251,12 @@ bool is_declared(string var)
 
 double define_name(string var, double val, bool b)
 {
-    if(is_declared(var))throw(var);
-    var_table.push_back(Variable{var, val, b});
+    if(st.is_declared(var))throw(var);
+    st.var_table.push_back(Variable{var, val, b});
     return val;
 }
 
-double declaration()
+double Symbol_table::declare()
 {
     Token t = ts.get();
     if(t.kind!=name&&t.kind!=constant)throw(t.kind);
@@ -269,7 +274,7 @@ double redeclaration()
 {
     Token t = ts.get();
     double d = expression();
-    set_value(t.name, d);
+    st.set_value(t.name, d);
     return d;
 }
 

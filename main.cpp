@@ -107,6 +107,9 @@ Token Token_stream::get()
             return buffer;
         }
     char sign;
+    cin.get(sign);
+    if(isspace(sign)&&sign=='\n')return Token{print};
+    cin.putback(sign);
     cin >> sign;
     switch(sign){
     case '^': // power
@@ -139,7 +142,8 @@ default:
         string s;
         s += sign;
         while(cin.get(sign)&&(isalpha(sign)||isdigit(sign)||sign=='_'))s+=sign;
-        cin.putback(sign);
+        if(isspace(sign)&&sign=='\n')cin.putback(print);
+        else cin.putback(sign);
         if(s==declkey){va.is_constant = false; return Token{let};}
         if(s==constkey){va.is_constant = true; return Token{constant};}
         cin >> sign;

@@ -1,0 +1,5 @@
+Testes.cbp
+Testes.depend
+Testes.layout
+bin/
+obj/

@@ -3,3 +3,5 @@ Testes.depend
 Testes.layout
 bin/
 obj/
+main.exe
+main.o

@@ -1,25 +1,39 @@
 #include <iostream>
 #include <vector>
 
-void print(std::string label, const std::vector<int>& vec)
+void rev_vec1(std::vector<int>vec1, std::vector<int>& v)
 {
-    std::cout << label << std::endl;
-    for(const int& i:vec)
-        std::cout << i << std::endl;
-
+    for(int i=vec1.size()-1; i>=0; --i)
+        v.push_back(vec1[i]);
 }
 
-void fibonacci(int x, int y, std::vector<int>& v, int n)
+void rev_vec2(std::vector<int>& v)
 {
-    v.push_back(x);
-    v.push_back(y);
-    for(int i=1; i<n-1; ++i)
-        v.push_back(v[i]+v[i-1]);
+    for(int i=0, j=v.size()-1; i<j; ++i, --j)
+        std::swap(v[i], v[j]);
 }
 
 int main()
 {
-    std::vector<int>v;
-    fibonacci(0, 1, v, 10);
-    print("v", v);
+    std::vector<int>test = {1, 2, 3, 4 , 5, 9, 0,};
+    std::vector<int>test2;
+    std::cout << "Original vector: ";
+    for(const int& i:test)
+        std::cout << i << " ";
+    std::cout << std::endl;
+    rev_vec1(test, test2);
+    std::cout << "rev_vec1: ";
+    for(const int& i:test2)
+        std::cout << i << " ";
+    std::cout << std::endl;
+    std::cout << "Original vector: ";
+    for(const int& i:test)
+        std::cout << i << " ";
+    std::cout << std::endl;
+    std::cout << "rev_vec2: " << std::endl;
+    rev_vec2(test);
+    std::cout << "Original vector: ";
+    for(const int& i:test)
+        std::cout << i << " ";
+
 }

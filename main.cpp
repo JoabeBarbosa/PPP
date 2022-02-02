@@ -1,55 +1,65 @@
 #include <iostream>
 #include <vector>
 
-namespace exc{
-    struct data_vec{
-        double mean;
-        double median;
-        double largest;
-        double smallest;
-    };
-    double mean;
-    double median;
-    double largest;
-    double smallest;
+std::vector<int> num_char(const std::vector<std::string>& v)
+{
+    std::vector<int>ch;
+    for(const std::string& s:v){
+        ch.push_back(s.size());
+    }
+    return ch;
 }
 
-void maxv(const std::vector<double>& v)
+std::string longest(const std::vector<std::string>& v)
 {
-    exc::mean = v[0];
-    exc::largest = v[0];
-    exc::smallest = v[0];
-    for(const double& d:v){
-        exc::mean += d;
-        if(d>exc::largest)
-            exc::largest = d;
-        if(d<exc::smallest)
-            exc::smallest = d;
+    std::string longest = v[0];
+    for(const std::string& s:v){
+        if(s.size()>longest.size())
+            longest = s;
     }
-    exc::mean /= v.size();
-    exc::median = v[v.size()/2];
+    return longest;
 }
 
-exc::data_vec max_struct(const std::vector<double>& v)
+std::string shortest(const std::vector<std::string>& v)
 {
-    double mean = 0;
-    double largest = v[0];
-    double smallest = v[0];
-    for(const double& d:v){
-        mean += d;
-        if(d>largest)
-            largest = d;
-        if(d<smallest)
-            smallest = d;
+    std::string shortest = v[0];
+    for(const std::string& s:v){
+        if(s.size()<shortest.size())
+            shortest = s;
     }
-    mean /= v.size();
-    double median = v[v.size()/2];
-    return exc::data_vec{mean, median, largest, smallest};
+    return shortest;
+}
+
+std::string first(const std::vector<std::string>& v)
+{
+    std::string first = v[0];
+    for(const std::string& s:v){
+        if(s<first)
+            first = s;
+    }
+    return first;
+}
+
+std::string last(const std::vector<std::string>& v)
+{
+    std::string last = v[0];
+    for(const std::string& s:v){
+        if(s>last)
+            last = s;
+    }
+    return last;
 }
 
 int main()
 {
-    std::vector<double>v = {1,2,3,4,5,6,7,8,9,12,23,1234,345.65,76554,7852345.6};
-    exc::data_vec data = max_struct(v);
-    std::cout << "mean = " << data.mean << " median = " << data.median << " largest = " << data.largest << " smallest = " << data.smallest << std::endl;
+    std::vector<std::string>v = {"carro", "bola", "constitucional", "zaratrusta", "barreira"};
+    std::vector<int>numChar = num_char(v);
+    for(int i:numChar)
+        std::cout << i << " ";
+    std::cout << std::endl;
+    std::string longest_ = longest(v);
+    std::string shortest_ = shortest(v);
+    std::string first_ = first(v);
+    std::string last_ = last(v);
+    std::cout << " Longest, shortest, first, last = {" << longest_ << shortest_ << first_ << last_ << "}";
 }

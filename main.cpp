@@ -24,21 +24,21 @@ namespace Pairs{
     };
 }
 
-Pairs::Name_pairs& p1()
-{
-    static Pairs::Name_pairs a;
-    return a;
-}
+Pairs::Name_pairs& p1()           // Criação de um objeto para acessar os membros da classe. Para evitar a criação de uma
+{                                 // variável global, a boa prática da engenharia de software é criar uma função que retorna
+    static Pairs::Name_pairs a;   // esse objeto. Declara-se o objeto dentro da função, como static para não ser destruído
+    return a;                     // ao término da execução da função, de modo que dure até o fim da execução do programa,
+}                                 // e acumule todas as modificações sofridas resultantes do elemento pass-by-value.
 
 void Pairs::Name_pairs::read_names()
 {
     string s;
     if(cin>>s&&isalpha(s[0])){
-        p1().name.push_back(s);
-    }
-    else{
-        cout << "Wrong input!\n";
-        cout << "Enter a name: ";
+        p1().name.push_back(s); // O objeto sem acesso aos private members de uma classe, pode acessar estes private members
+    }                           // desde que esteja tentando acessá-los dentro do escopo de uma member-function. Uma função
+    else{                       // que retorna um objeto de uma classe, pode retornar diretamente os membros da classe do
+        cout << "Wrong input!\n";   // objeto, através da notação colocando um ponto seguindo a função, e seguindo o ponto o
+        cout << "Enter a name: ";   // membro da classe que se quer acessar/retornar para sofrer a modificação/operação.
         p1().read_names();
     }
 }
@@ -87,8 +87,8 @@ void get_pair()
     while(true){
         char ch;
         cout << "Enter a name: ";
-        cin >> ch;
-        if(ch==stop)break;
+        cin >> ch;                //  A operação "cin >>" automaticamente coloca uma new line '\n' após um input externo.
+        if(ch==stop)break;        //  Caso ocorra um "cin.putback(ch)", o "cin>>" para "reinputar" ch não resulta em '\n'.
         cin.putback(ch);
         p1().read_names();
         cout << "Enter a age: ";

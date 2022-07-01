@@ -15,9 +15,9 @@ namespace Pairs{
     public:
             void read_names();
             void read_ages();
-            void print();
             void sort_();
-            void printt();
+            vector<string> get_name()const;
+            vector<double> get_age()const;
     private:
             vector<string>name;
             vector<double>age;
@@ -28,7 +28,28 @@ Pairs::Name_pairs& p1()           // Criação de um objeto para acessar os memb
 {                                 // variável global, a boa prática da engenharia de software é criar uma função que retorna
     static Pairs::Name_pairs a;   // esse objeto. Declara-se o objeto dentro da função, como static para não ser destruído
     return a;                     // ao término da execução da função, de modo que dure até o fim da execução do programa,
-}                                 // e acumule todas as modificações sofridas resultantes do elemento pass-by-value.
+}                                // e acumule todas as modificações sofridas resultantes do elemento pass-by-value.
+
+vector<string> Pairs::Name_pairs::get_name()const //nonmodifying operation: não modifica o objeto, podendo ser chamada
+{                                                 //por objetos declarados constantes. Modifying operations não podem
+    return name;                                  //ser chamadas por objetos declarados constantes.
+}
+
+vector<double> Pairs::Name_pairs::get_age()const //nonmodifying operation
+{
+    return age;
+}
+
+bool operator==(const Pairs::Name_pairs& a,const  Pairs::Name_pairs& b)
+{
+    return a.get_name()==b.get_name()&&
+           a.get_age()==b.get_age();
+}
+
+bool operator!=(const Pairs::Name_pairs& a, const Pairs::Name_pairs& b)
+{
+    return !(a==b);
+}
 
 void Pairs::Name_pairs::read_names()
 {
@@ -61,14 +82,14 @@ void Pairs::Name_pairs::read_ages()
     }
 }
 
-void Pairs::Name_pairs::print()
+void print()
 {
-    for(int i=0; i<p1().name.size(); ++i){
-        cout << p1().name[i] << '\t' << p1().age[i] << endl;
-    }
-}
-
-void Pairs::Name_pairs::sort_()
+    for(int i=0; i<p1().get_name().size(); ++i){
+        cout << p1().get_name()[i] << '\t' << p1().get_age()[i] << endl; // A função retorna o objeto, daí já chamo uma
+    }                                                                    // member-function do objeto que retorna um
+}                                                                        // data-member, que no caso é um vector.
+                                                                         // Daí já uso Brackets para definir a posição do
+void Pairs::Name_pairs::sort_()                                          // elemento dentro do vector a ser retornado.
 {
     vector<string>name3 {p1().name};
     vector<double>age4;
@@ -97,11 +118,22 @@ void get_pair()
     }
 }
 
+enum class Month{
+    jan=1, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec
+};
+
+Month operator++(Month& m)
+{
+    m = (m==Month::dec) ? Month::jan : Month(int(m)+1);
+    return m;
+}
+
+Month m;
+
 int main()
 {
     get_pair();
-    p1().print();
+    print();
     p1().sort_();
-    p1().print();
+    print();
 }
-

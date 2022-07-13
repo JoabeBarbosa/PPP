@@ -1,122 +1,11 @@
 #include <iostream>
-#include <vector>
-#include <algorithm>
 
-using std::cin;
-using std::cout;
 using std::string;
-using std::vector;
+using std::cout;
+using std::cin;
 using std::endl;
-
-const char stop = '0';
-
-namespace Pairs{
-    class Name_pairs{
-    public:
-            void read_names();
-            void read_ages();
-            void sort_();
-            vector<string> get_name()const;
-            vector<double> get_age()const;
-    private:
-            vector<string>name;
-            vector<double>age;
-    };
-}
-
-Pairs::Name_pairs& p1()           // Criação de um objeto para acessar os membros da classe. Para evitar a criação de uma
-{                                 // variável global, a boa prática da engenharia de software é criar uma função que retorna
-    static Pairs::Name_pairs a;   // esse objeto. Declara-se o objeto dentro da função, como static para não ser destruído
-    return a;                     // ao término da execução da função, de modo que dure até o fim da execução do programa,
-}                                // e acumule todas as modificações sofridas resultantes do elemento pass-by-value.
-
-vector<string> Pairs::Name_pairs::get_name()const //nonmodifying operation: não modifica o objeto, podendo ser chamada
-{                                                 //por objetos declarados constantes. Modifying operations não podem
-    return name;                                  //ser chamadas por objetos declarados constantes.
-}
-
-vector<double> Pairs::Name_pairs::get_age()const //nonmodifying operation
-{
-    return age;
-}
-
-bool operator==(const Pairs::Name_pairs& a,const  Pairs::Name_pairs& b)
-{
-    return a.get_name()==b.get_name()&&
-           a.get_age()==b.get_age();
-}
-
-bool operator!=(const Pairs::Name_pairs& a, const Pairs::Name_pairs& b)
-{
-    return !(a==b);
-}
-
-void Pairs::Name_pairs::read_names()
-{
-    string s;
-    if(cin>>s&&isalpha(s[0])){
-        p1().name.push_back(s); // O objeto sem acesso aos private members de uma classe, pode acessar estes private members
-    }                           // desde que esteja tentando acessá-los dentro do escopo de uma member-function. Uma função
-    else{                       // que retorna um objeto de uma classe, pode retornar diretamente os membros da classe do
-        cout << "Wrong input!\n";   // objeto, através da notação colocando um ponto seguindo a função, e seguindo o ponto o
-        cout << "Enter a name: ";   // membro da classe que se quer acessar/retornar para sofrer a modificação/operação.
-        p1().read_names();
-    }
-}
-
-void Pairs::Name_pairs::read_ages()
-{
-    char ch;
-    double d;
-    if(cin>>ch&&isdigit(ch)){
-        cin.putback(ch);
-        cin >> d;
-        p1().age.push_back(d);
-    }
-    else{
-        cout << "Wrong input!" << endl;
-        string s;
-        getline(cin, s);
-        cout << "Enter a age: ";
-        p1().read_ages();
-    }
-}
-
-void print()
-{
-    for(int i=0; i<p1().get_name().size(); ++i){
-        cout << p1().get_name()[i] << '\t' << p1().get_age()[i] << endl; // A função retorna o objeto, daí já chamo uma
-    }                                                                    // member-function do objeto que retorna um
-}                                                                        // data-member, que no caso é um vector.
-                                                                         // Daí já uso Brackets para definir a posição do
-void Pairs::Name_pairs::sort_()                                          // elemento dentro do vector a ser retornado.
-{
-    vector<string>name3 {p1().name};
-    vector<double>age4;
-    sort(p1().name.begin(), p1().name.end());
-    for(int i=0; i<p1().name.size(); ++i){
-        for(int j=0; j<name3.size(); ++j){
-            if(p1().name[i]==name3[j])
-                age4.push_back(p1().age[j]);
-        }
-    }
-    p1().age = age4;
-}
-
-void get_pair()
-{
-    while(true){
-        char ch;
-        cout << "Enter a name: ";
-        cin >> ch;                //  A operação "cin >>" automaticamente coloca uma new line '\n' após um input externo.
-        if(ch==stop)break;        //  Caso ocorra um "cin.putback(ch)", o "cin>>" para "reinputar" ch não resulta em '\n'.
-        cin.putback(ch);
-        p1().read_names();
-        cout << "Enter a age: ";
-        p1().read_ages();
-
-    }
-}
+using std::ostream; //ostream is a class. cout is an object of ostream class.
+using std::istream;
 
 enum class Month{
     jan=1, feb, mar, apr, may, jun, jul, aug, sep, oct, nov, dec
@@ -128,12 +17,130 @@ Month operator++(Month& m)
     return m;
 }
 
-Month m;
+class Date{
+public:
+    class Invalid{};
+    Date(); /** Default constructor */
+    Date(int, Month, int);
+private:
+    int y;
+    Month m;
+    int d;
+};
+
+Date::Date(int a, Month b, int c)
+:y(a), m(b), d(c){}
+
+const Date& default_date()
+{
+     static Date dd {2022, Month::jul, 1};
+     return dd;
+}
+
+Date::Date()
+:y(default_date().y),
+ m(default_date().m),
+ d(default_date().d) {}
+
+enum class Genre{
+    fiction, nonfiction, periodical, biography, children
+};
+
+class Book{
+public:
+        class Invalid{};
+        Book(); /** Deafult constructor */
+        Book(string, string, string, Date, bool, Genre);
+        string get_isbn()const{return isbn;}
+        string get_title()const{return title;}
+        string get_author()const{return author;}
+        Date get_cp_date()const{return cp_date;}
+        bool get_checked_out()const{return checked_out;}
+        Genre get_gen()const{return gen;}
+private:
+        string isbn;
+        string title;
+        string author;
+        Date cp_date;
+        bool checked_out;
+        Genre gen;
+};
+
+bool is_valid(string s)
+{
+    if(s.size()==4&&
+       isdigit(s[0])&&
+       isdigit(s[1])&&
+       isdigit(s[2])&&
+       (isdigit(s[3])||isalpha(s[3])))
+        return true;
+    else
+        return false;
+}
+
+Book::Book(string a, string b, string c, Date d, bool e, Genre f)
+:isbn(a), title(b), author(c), cp_date(d), checked_out(e), gen(f)
+{
+    if(!is_valid(isbn))throw Invalid{};
+}
+
+Book::Book()
+:isbn("0000"), title(" "), author(" "), cp_date(2022, Month::jul, 1), checked_out(false), gen(Genre::nonfiction)
+{
+    if(is_valid(isbn))throw Invalid{};
+}
+
+class Patron{
+public:
+    Patron();
+    string get_name()const{return name;}
+    int get_card_number()const{return card_number;}
+    double get_fee()const{return fee;}
+    string set_name();
+    void set_card_number();
+    void set_fee();
+    void owes_fee();
+private:
+    string name;
+    int card_number;
+    double fee;
+};
+
+void Patron::set_fee()
+{
+    cin >> fee;
+}
+
+bool operator==(const Book& a, const Book& b)
+{
+    return a.get_isbn()==b.get_isbn();
+}
+
+bool operator!=(const Book& a, const Book& b)
+{
+    return !(a.get_isbn()==b.get_isbn());
+}
+
+ostream& operator<<(ostream& os, const Book& a) //1) cout is an object of ostream class and cin is an object of istream class
+   {                                       //2) These operators must be overloaded as a global function. And if we want to
+    os << a.get_title() << endl           //   allow them to access private data members of the class,
+        << a.get_author() << endl          //   we must make them friend.
+        << a.get_isbn() << endl;
+        return os;
+}
+
+istream& operator>>(istream& is, Book& a)
+{
+    string s1, s2, s3;
+    is >> s1 >> s2 >> s3;
+    Date d;
+    bool b = false;
+    Genre g = Genre::nonfiction;
+    a = Book(s1, s2, s3, d, b, g); //Useful way of assignment. Not equal initialization "Book a {s1, s2, s3, d, b};".
+    return is;
+}
 
 int main()
 {
-    get_pair();
-    print();
-    p1().sort_();
-    print();
+
 }
